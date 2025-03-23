@@ -82,17 +82,35 @@ def valid_date(date: str) -> bool:
         return False
     return True
 
+def is_earlier(start_date: str, end_date: str) -> bool:
+    """
+    Checks if the start_date is earlier than or equal to the end_date.
+    """
+    return start_date <= end_date
+
+def usage():
+    """
+    Prints a usage message and exits the program.
+    """
+    print("Usage: python3 assignment1.py YYYY-MM-DD YYYY-MM-DD")
+    print("Both dates must be valid and in YYYY-MM-DD format.")
+    sys.exit(1)
+
 if __name__ == "__main__":
+    # Check the number of arguments
     if len(sys.argv) != 3:
-        print("Usage: python3 assignment1.py YYYY-MM-DD YYYY-MM-DD")
-        sys.exit(1)
+        usage()
     
     start_date, end_date = sys.argv[1], sys.argv[2]
-
+    
+    # Validate the dates
     if not valid_date(start_date) or not valid_date(end_date):
-        print("Error: Invalid date format or non-existent date.")
-        sys.exit(1)
-
+        usage()
+    
+    # Ensure the start date is earlier than the end date
+    if not is_earlier(start_date, end_date):
+        start_date, end_date = end_date, start_date  # Swap dates if necessary
+    
+    # Calculate and print the number of weekend days
     weekend_days = day_count(start_date, end_date)
     print("The period between {} and {} includes {} weekend days.".format(start_date, end_date, weekend_days))
-
