@@ -35,7 +35,18 @@ def after(date: str) -> str:
     
     return "{}-{:02}-{:02}".format(year, month, day)
 
-def count_weekend_days(start_date: str, end_date: str) -> int:
+def day_of_week(date: str) -> int:
+    """
+    Returns the day of the week for a given date.
+    0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    """
+    year, month, day = map(int, date.split('-'))
+    offset = [0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4]
+    if month < 3:
+        year -= 1
+    return (year + year // 4 - year // 100 + year // 400 + offset[month - 1] + day) % 7
+
+def day_count(start_date: str, end_date: str) -> int:
     """
     Counts the number of Saturdays and Sundays between start_date and end_date.
     """
@@ -43,15 +54,33 @@ def count_weekend_days(start_date: str, end_date: str) -> int:
     current_date = start_date
     
     while current_date <= end_date:
-        year, month, day = map(int, current_date.split('-'))
-        weekday = (year * 365 + sum(mon_max(m, year) for m in range(1, month)) + day) % 7
-        
-        if weekday in [6, 0]:  # Saturday (6) or Sunday (0)
+        if day_of_week(current_date) in [0, 6]:  # Sunday (0) or Saturday (6)
             weekends += 1
-        
         current_date = after(current_date)
     
     return weekends
+
+def valid_date(date: str) -> bool:
+    """
+    Checks if the given date is valid (YYYY-MM-DD format and actual date exists).
+    """
+    parts = date.split('-')
+    if len(parts) != 3:
+        return False
+    year_str, month_str, day_str = parts
+    if len(year_str) != 4 or len(month_str) != 2 or len(day_str) != 2:
+        return False
+    try:
+        year = int(year_str)
+        month = int(month_str)
+        day = int(day_str)
+    except ValueError:
+        return False
+    if month < 1 or month > 12:
+        return False
+    if day < 1 or day > mon_max(month, year):
+        return False
+    return True
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
@@ -59,5 +88,11 @@ if __name__ == "__main__":
         sys.exit(1)
     
     start_date, end_date = sys.argv[1], sys.argv[2]
-    weekend_days = count_weekend_days(start_date, end_date)
+
+    if not valid_date(start_date) or not valid_date(end_date):
+        print("Error: Invalid date format or non-existent date.")
+        sys.exit(1)
+
+    weekend_days = day_count(start_date, end_date)
     print("The period between {} and {} includes {} weekend days.".format(start_date, end_date, weekend_days))
+
